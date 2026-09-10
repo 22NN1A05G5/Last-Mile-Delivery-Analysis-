@@ -306,8 +306,8 @@ order by total_orders desc, total_value desc;
 -- **********************************************
 
 -- 1. What is the delivery status distribution?
-select status, count(*) as total_deliveries from deliveries
-group by status
+select status_, count(*) as total_deliveries from deliveries
+group by status_
 order by total_deliveries desc;
 
 -- 2. Which delivery zones have the highest number of deliveries?
@@ -321,14 +321,14 @@ order by total_deliveries desc;
 select o.delivery_zone_id, count(*) as failed_deliveries
 from orders o
 join deliveries d on o.order_id = d.order_id
-where d.status = 'Failed'
+where d.status_ = 'Failed'
 group by o.delivery_zone_id
 order by failed_deliveries desc;
 
 -- 4. What is the average delivery duration by status?
-select status, round(avg(delivery_duration_min),2) as avg_duration
+select status_, round(avg(delivery_duration_min),2) as avg_duration
 from deliveries
-group by status
+group by status_
 order by avg_duration desc;
 
 -- 5. Which delivery zones have the longest average delivery duration?
@@ -346,24 +346,26 @@ group by o.service_type
 order by avg_duration desc;
 
 -- 7. How does delivery performance vary by priority?
-select o.priority, d.status, count(*) as total_deliveries from orders o
+select o.priority, d.status_, count(*) as total_deliveries from orders o
 join deliveries d on o.order_id = d.order_id
-group by o.priority, d.status
+group by o.priority, d.status_
 order by o.priority, total_deliveries desc;
 
 -- 8. Which delivery statuses require the highest number of attempts?
-select status, round(avg(delivery_attempt),2) as avg_attempts from deliveries
-group by status
+select status_, round(avg(delivery_attempt),2) as avg_attempts from deliveries
+group by status_
 order by avg_attempts desc;
 
 -- 9. How does delivery performance change over time?
-select year(assigned_date) as year, month(assigned_date) as month, status, count(*) AS total
+select year(assigned_date) as year, month(assigned_date) 
+as month, status_, count(*) AS total
 from deliveries
 group by year, month, status
 order by year, month;
 
 -- 10. Which zones show poor delivery performance?
-select o.delivery_zone_id,count(*) as total_deliveries,sum(d.status = 'Failed') AS failed_deliveries
+select o.delivery_zone_id,count(*) as total_deliveries,
+sum(d.status_ = 'Failed') AS failed_deliveries
 from orders o
 join deliveries d on o.order_id = d.order_id
 group by o.delivery_zone_id
@@ -388,13 +390,13 @@ order by avg_duration desc;
 
 -- 3. Which drivers completed the most successful deliveries?
 select driver_id, count(*) as delivered_count from deliveries
-where status = 'Delivered'
+where status_ = 'Delivered'
 group by driver_id
 order by delivered_count desc;
 
 -- 4. Which drivers have handled failed deliveries?
 select driver_id, count(*) as failed_deliveries from deliveries
-where status = 'Failed'
+where status_ = 'Failed'
 group by driver_id
 order by failed_deliveries desc;
 
@@ -442,14 +444,15 @@ select count(*) as multiple_attempts from deliveries
 where delivery_attempt > 1;
 
 -- 2. Which delivery statuses have the most failed or problematic deliveries?
-select status,count(*) as total from deliveries where status in ('Failed','Pending','Rescheduled')
-group by status
+select status_,count(*) as total from deliveries where 
+status_ in ('Failed','Pending','Rescheduled')
+group by status_
 order by total desc;
 
 -- 3. Which zones have the highest number of failed deliveries?
 select o.delivery_zone_id,count(*) as failed_deliveries from orders o
 join deliveries d on o.order_id = d.order_id
-where d.status = 'Failed'
+where d.status_ = 'Failed'
 group by o.delivery_zone_id
 order by failed_deliveries desc;
 
@@ -466,34 +469,35 @@ from deliveries
 where delivery_attempt > 1;
 
 -- 6. Which delivery statuses require the highest average number of attempts?
-select status,round(avg(delivery_attempt),2) as avg_attempts
+select status_,round(avg(delivery_attempt),2) as avg_attempts
 from deliveries
-group by status
+group by status_
 order by avg_attempts desc;
 
 -- 7. Which zones have more failed deliveries than the average failed deliveries per zone?
 select o.delivery_zone_id,count(*) as failed_deliveries from orders o
 join deliveries d on o.order_id = d.order_id
-where d.status = 'Failed'
+where d.status_ = 'Failed'
 group by o.delivery_zone_id
 having count(*) > 10
 order by failed_deliveries desc;
 
 -- 8. How many deliveries are pending or rescheduled?
-select status,count(*) as total from deliveries
-where status in ('Pending','Rescheduled')
-group by status;
+select status_,count(*) as total from deliveries
+where status_ in ('Pending','Rescheduled')
+group by status_;
 
 -- 9. Which service types have the most failed deliveries?
 select o.service_type,count(*) as failed_deliveries from orders o
 join deliveries d on o.order_id = d.order_id
-where d.status = 'Failed'
+where d.status_ = 'Failed'
 group by o.service_type
 order by failed_deliveries desc;
 
 -- 10. Which delivery zones show the highest overall problem activity?
-select o.delivery_zone_id,count(*) as problem_deliveries from orders o
+select o.delivery_zone_id,count(*) as problem_deliveries
+from orders o
 join deliveries d on o.order_id = d.order_id
-where d.status in ('Failed','Pending','Rescheduled') or d.delivery_attempt > 1
+where d.status_ in ('Failed','Pending','Rescheduled') or d.delivery_attempt > 1
 group by o.delivery_zone_id
 order by problem_deliveries desc;
